@@ -1,25 +1,72 @@
-# BetCard 
+# BetCard
 
-This folder contains a full-stack betting game project with:
+> A full-stack betting game with a casino-style UI, wallet system, admin panel, and cookie-based authentication.
 
-- a `frontend` built with React and Vite
-- a `backend` built with Express and MongoDB
-- cookie-based authentication
-- wallet and transaction management
-- an admin panel for user and balance management
+BetCard is a two-part app:
 
-The main user flow is:
+- `frontend` built with React + Vite
+- `backend` built with Express + MongoDB
 
-1. Sign up or log in
-2. Add wallet balance
-3. Start a game by placing a bet
-4. Match cards across two rows within the allowed attempts
-5. Win payout on success or lose the bet on failure
+Players can register, manage wallet balance, play the card-matching betting game, and update their profile. Admin users can monitor platform stats and manage user balances.
+
+## Why This Project Feels Good
+
+- Fast React frontend with a custom themed interface
+- Express API with MongoDB persistence
+- JWT auth stored in HTTP-only cookies
+- Wallet, transactions, and admin tools
+- Deployment-ready for `Vercel + Render`
+
+## Core User Flow
+
+1. Create an account or log in
+2. Add money to the wallet
+3. Start a game with a bet
+4. Match cards across both rows
+5. Win a payout or lose the stake
+
+## Feature Highlights
+
+### Player Features
+
+- User registration and login
+- Persistent session using cookies
+- Wallet deposit and withdraw flow
+- Transaction history
+- Profile editing for:
+  `name`, `gamer ID`, `email`, and `phone`
+- Card-matching betting game
+
+### Admin Features
+
+- View all users
+- View total user count
+- View total balance across the system
+- View total deposited amount
+- Adjust any user's balance
+
+## Tech Stack
+
+### Frontend
+
+- React
+- Vite
+- Axios
+- Plain CSS
+
+### Backend
+
+- Node.js
+- Express
+- MongoDB + Mongoose
+- JWT authentication
+- Cookie-based sessions
+- bcryptjs
 
 ## Project Structure
 
 ```text
-vikas/
+BetCard/
   backend/
     src/
       config/        # Environment and MongoDB connection
@@ -37,84 +84,45 @@ vikas/
       api/           # Axios instance
       components/    # Reusable UI parts
       context/       # Auth state management
-      pages/         # Auth, game, wallet, admin pages
+      pages/         # Auth, game, wallet, profile, admin
       routes/        # Top-level app flow
       styles/        # Global styling
 ```
 
-## Tech Stack
-
-### Frontend
-
-- React
-- Vite
-- Axios
-- Plain CSS
-
-### Backend
-
-- Node.js
-- Express
-- MongoDB with Mongoose
-- JWT authentication
-- Cookie-based sessions
-- bcryptjs for password hashing
-
-## Features
-
-### User Features
-
-- Register and log in
-- Persistent session with HTTP-only cookie
-- Starting balance of `1000`
-- Deposit funds
-- Withdraw funds
-- View recent transactions
-- Play the card matching game
-
-### Admin Features
-
-- View all users
-- View total user count
-- View total balance in the system
-- View total deposited amount
-- Edit any user's balance
-
 ## Game Rules
 
-The game logic is implemented in `backend/src/services/gameService.js`.
+The main game logic lives in `backend/src/services/gameService.js`.
 
-- Each game uses `5` hidden numbers in two rows
-- Row 2 is shuffled so the order is different from Row 1
+- Each game contains `5` hidden numbers in two rows
+- Row 2 is shuffled so it does not match Row 1 visually
 - The player places a bet before starting
-- The player selects one card from Row 1 and then one card from Row 2
-- If the numbers match:
-  matched cards stay revealed
-- If they do not match:
-  the attempt count increases and unmatched cards are reshuffled
+- The player picks one card in Row 1 and one in Row 2
+- Matching cards stay revealed
+- Wrong picks increase the attempt counter and reshuffle unmatched cards
 - Maximum attempts: `15`
 - Maximum bet: `5000`
 - Win multiplier: `3x`
-- Matching all pairs wins the game and credits the payout to the wallet
+- Matching all pairs wins the game
 
 ## Authentication
 
-Authentication is handled by the backend using JWT stored in a cookie named `token`.
+Authentication uses a JWT stored in an HTTP-only cookie named `token`.
 
-- Login and registration both issue a token
+- Login and register both issue a token
 - Protected routes read the token from cookies
 - Admin routes require `role === "admin"`
 - Session duration is `7 days`
+- Cross-site production cookies are supported for Render + Vercel deployment
 
 ## Wallet and Transactions
 
 Wallet behavior:
 
-- Deposits immediately increase user balance
-- Withdrawals reduce balance and create a transaction with `pending` status
+- Deposits increase balance immediately
+- Withdrawals reduce balance and create a `pending` transaction
 - Bets create a `bet` transaction
 - Wins create a `win` transaction
-- Admin balance edits create an `adjustment` transaction
+- Admin edits create an `adjustment` transaction
 
 Supported transaction types:
 
@@ -126,13 +134,14 @@ Supported transaction types:
 
 ## API Overview
 
-Base backend route prefix: `/api`
+Base route prefix: `/api`
 
 ### Auth
 
 - `POST /api/auth/register`
 - `POST /api/auth/login`
 - `GET /api/auth/me`
+- `PUT /api/auth/profile`
 - `POST /api/auth/logout`
 
 ### Wallet
@@ -154,112 +163,11 @@ Base backend route prefix: `/api`
 - `GET /api/admin/stats`
 - `PATCH /api/admin/user/:id`
 
-## Environment Variables
+### Health
 
-### Backend
+- `GET /api/health`
 
-Create `backend/.env` with:
-
-```env
-PORT=5000
-MONGO_URI=your_mongodb_connection_string
-JWT_SECRET=your_jwt_secret
-CLIENT_URL=http://localhost:5173
-NODE_ENV=development
-COOKIE_SECURE=false
-COOKIE_SAME_SITE=lax
-```
-
-### Frontend
-
-Create a frontend environment file such as `frontend/.env` with:
-
-```env
-VITE_API_URL=http://localhost:5000/api
-```
-
-## Deployment
-
-Recommended setup:
-
-- deploy `backend` to Render
-- deploy `frontend` to Vercel
-
-This project uses cookie-based auth, so the production setup must use:
-
-- `CLIENT_URL` on the backend set to the exact Vercel frontend URL
-- `VITE_API_URL` on the frontend set to the exact Render backend URL plus `/api`
-- secure cross-site cookies on the backend:
-  `COOKIE_SECURE=true`
-- cross-site cookie policy on the backend:
-  `COOKIE_SAME_SITE=none`
-
-### Render Deployment for Backend
-
-This repo includes a root `render.yaml` that points Render at the `backend` folder.
-
-1. Push the repo to GitHub.
-2. In Render, create a new `Blueprint` or `Web Service` from the repo.
-3. If you use the blueprint, Render will read `render.yaml` automatically.
-4. Set these backend environment variables in Render:
-
-```env
-NODE_ENV=production
-MONGO_URI=your_mongodb_connection_string
-JWT_SECRET=your_long_random_secret
-CLIENT_URL=https://your-frontend-project.vercel.app
-COOKIE_SECURE=true
-COOKIE_SAME_SITE=none
-```
-
-5. Deploy the service.
-6. After deploy, confirm the health check works at:
-
-```text
-https://your-render-backend.onrender.com/api/health
-```
-
-If you do not use the blueprint, use these Render settings manually:
-
-- Root Directory: `backend`
-- Build Command: `npm install`
-- Start Command: `npm start`
-
-### Vercel Deployment for Frontend
-
-1. In Vercel, import the same GitHub repo.
-2. Set the project `Root Directory` to `frontend`.
-3. Vercel should detect `Vite` automatically.
-4. Add this environment variable in Vercel:
-
-```env
-VITE_API_URL=https://your-render-backend.onrender.com/api
-```
-
-5. Deploy the project.
-
-### Production URL Pairing
-
-Use matching production URLs like this:
-
-```env
-# Render backend
-CLIENT_URL=https://betcard-frontend.vercel.app
-
-# Vercel frontend
-VITE_API_URL=https://betcard-backend.onrender.com/api
-```
-
-### Important Notes for Cookies
-
-- `SameSite=None` is required because Vercel and Render are different domains
-- `Secure=true` is required by browsers when using `SameSite=None`
-- if `CLIENT_URL` does not exactly match your Vercel domain, login cookies will not be accepted by the browser
-- after every Vercel redeploy with a new preview URL, cookie auth may fail unless `CLIENT_URL` matches that preview domain
-
-For stable authentication, use your main production Vercel domain in `CLIENT_URL`.
-
-## Getting Started
+## Local Setup
 
 ### 1. Install dependencies
 
@@ -277,38 +185,131 @@ cd frontend
 npm install
 ```
 
-### 2. Start the backend
+### 2. Configure environment variables
+
+Backend `backend/.env`:
+
+```env
+PORT=5000
+MONGO_URI=your_mongodb_connection_string
+JWT_SECRET=your_jwt_secret
+CLIENT_URL=http://localhost:5173
+NODE_ENV=development
+COOKIE_SECURE=false
+COOKIE_SAME_SITE=lax
+```
+
+Frontend `frontend/.env`:
+
+```env
+VITE_API_URL=http://localhost:5000/api
+```
+
+### 3. Start the backend
 
 ```bash
 cd backend
 npm run dev
 ```
 
-### 3. Start the frontend
+### 4. Start the frontend
 
 ```bash
 cd frontend
 npm run dev
 ```
 
-Frontend default URL:
+Default local URLs:
 
-```text
-http://localhost:5173
+- Frontend: `http://localhost:5173`
+- Backend: `http://localhost:5000`
+
+## Database Persistence
+
+User registrations, profile changes, wallet activity, games, and transactions are stored in MongoDB through the `MONGO_URI` value used by the backend.
+
+That means:
+
+- local development writes to the database in `backend/.env`
+- deployed production writes to the database configured in Render
+
+## Deployment
+
+Recommended production setup:
+
+- `frontend` on Vercel
+- `backend` on Render
+
+This repo already includes a root-level `render.yaml` for the backend service.
+
+## Deploy Backend to Render
+
+If you are using the dashboard manually:
+
+- Root Directory: `backend`
+- Build Command: `npm install`
+- Start Command: `npm start`
+
+Set these environment variables in Render:
+
+```env
+NODE_ENV=production
+MONGO_URI=your_mongodb_connection_string
+JWT_SECRET=your_long_random_secret
+CLIENT_URL=https://your-frontend-project.vercel.app
+COOKIE_SECURE=true
+COOKIE_SAME_SITE=none
 ```
 
-Backend default URL:
+After deploy, test:
 
 ```text
-http://localhost:5000
+https://your-render-backend.onrender.com/api/health
 ```
+
+## Deploy Frontend to Vercel
+
+In Vercel:
+
+- import the same GitHub repository
+- set Root Directory to `frontend`
+- keep the detected Vite settings
+
+Add this environment variable:
+
+```env
+VITE_API_URL=https://your-render-backend.onrender.com/api
+```
+
+## Production URL Pairing
+
+Use the final production URLs like this:
+
+```env
+# Render backend
+CLIENT_URL=https://betcard-frontend.vercel.app
+
+# Vercel frontend
+VITE_API_URL=https://betcard-backend.onrender.com/api
+```
+
+## Important Cookie Notes
+
+- `SameSite=None` is required because Vercel and Render run on different domains
+- `Secure=true` is required when using `SameSite=None`
+- `CLIENT_URL` must exactly match your Vercel frontend domain
+- if `CLIENT_URL` is wrong, login may fail even though the API is live
+
+For the most reliable production auth, use your main Vercel production domain instead of a temporary preview URL.
 
 ## Data Models
 
 ### User
 
 - `name`
+- `username`
 - `email`
+- `phone`
 - `password`
 - `balance`
 - `role`
@@ -336,20 +337,14 @@ http://localhost:5000
 - `status`
 - `note`
 
-## Frontend Flow
+## Frontend App Flow
 
-The React app uses a small app-shell pattern instead of URL-based page routing.
+The frontend uses a small app-shell flow instead of a full URL-driven page system.
 
-- `AuthContext` loads the current user from `/auth/me`
 - unauthenticated users see the auth page
-- normal users can switch between `Game` and `Wallet`
-- admin users are taken directly to the admin page
-
-## Notes
-
-- The backend enables CORS for the configured frontend URL and allows credentials
-- Authentication depends on cookies, so frontend requests use `withCredentials: true`
-- The UI is styled with a custom casino-like dark theme in `frontend/src/styles/global.css`
+- regular users can switch between `Game`, `Wallet`, and `Profile`
+- admin users are taken to the admin page
+- `AuthContext` restores the session from `/auth/me`
 
 ## Scripts
 
@@ -362,5 +357,12 @@ The React app uses a small app-shell pattern instead of URL-based page routing.
 
 - `npm run dev` - start Vite dev server
 - `npm run build` - create production build
-- `npm run preview` - preview production build
+- `npm run preview` - preview the production build
 - `npm run lint` - run ESLint
+
+## Notes
+
+- CORS is enabled for the configured frontend URL
+- frontend API calls use `withCredentials: true`
+- the UI styling lives in `frontend/src/styles/global.css`
+- the backend exposes a health endpoint at `/api/health`
