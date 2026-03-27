@@ -4,6 +4,7 @@ import AuthPage from "../pages/AuthPage";
 import GamePage from "../pages/GamePage";
 import WalletPage from "../pages/WalletPage";
 import AdminPage from "../pages/AdminPage";
+import ProfilePage from "../pages/ProfilePage";
 import Navbar from "../components/Navbar";
 
 export default function AppRoutes() {
@@ -38,6 +39,7 @@ export default function AppRoutes() {
 
       {page === "game" && <GamePage />}
       {page === "wallet" && <WalletPage />}
+      {page === "profile" && <ProfilePage />}
     </div>
   );
 }

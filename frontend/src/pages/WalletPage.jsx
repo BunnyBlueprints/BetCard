@@ -2,15 +2,34 @@ import { useEffect, useState } from "react";
 import API from "../api/axios";
 import { useAuth } from "../context/AuthContext";
 
+const initialDepositForm = {
+  amount: "",
+  paymentMethod: "debit",
+  cardholderName: "",
+  cardNumber: "",
+  expiry: "",
+  cvv: "",
+};
+
 export default function WalletPage() {
   const { refreshUser } = useAuth();
   const [balance, setBalance] = useState(0);
   const [transactions, setTransactions] = useState([]);
-  const [amount, setAmount] = useState("");
+  const [depositForm, setDepositForm] = useState(initialDepositForm);
+  const [withdrawAmount, setWithdrawAmount] = useState("");
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   const isPositiveTransaction = (type) =>
     ["deposit", "win", "adjustment"].includes(type);
+
+  const handleDepositChange = (event) => {
+    const { name, value } = event.target;
+    setDepositForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
 
   const fetchWallet = async () => {
     try {
@@ -29,10 +48,17 @@ export default function WalletPage() {
   const deposit = async () => {
     try {
       setError("");
+      setSuccess("");
       await API.post("/wallet/deposit", {
-        amount: Number(amount),
+        amount: Number(depositForm.amount),
+        paymentMethod: depositForm.paymentMethod,
+        cardholderName: depositForm.cardholderName,
+        cardNumber: depositForm.cardNumber,
+        expiry: depositForm.expiry,
+        cvv: depositForm.cvv,
       });
-      setAmount("");
+      setDepositForm(initialDepositForm);
+      setSuccess("Deposit successful");
       await fetchWallet();
       await refreshUser();
     } catch (err) {
@@ -43,10 +69,12 @@ export default function WalletPage() {
   const withdraw = async () => {
     try {
       setError("");
+      setSuccess("");
       await API.post("/wallet/withdraw", {
-        amount: Number(amount),
+        amount: Number(withdrawAmount),
       });
-      setAmount("");
+      setWithdrawAmount("");
+      setSuccess("Withdrawal requested");
       await fetchWallet();
       await refreshUser();
     } catch (err) {
@@ -64,17 +92,78 @@ export default function WalletPage() {
       </div>
 
       {error && <div className="toast err">{error}</div>}
+      {success && <div className="toast ok">{success}</div>}
 
       <div className="wallet-grid">
         <div className="wallet-box">
-          <h3 className="box-title">MANAGE FUNDS</h3>
+          <h3 className="box-title">ADD MONEY</h3>
+          <div className="payment-type-row">
+            {["debit", "credit"].map((type) => (
+              <button
+                key={type}
+                type="button"
+                className={`quick-btn ${depositForm.paymentMethod === type ? "active" : ""}`}
+                onClick={() =>
+                  setDepositForm((prev) => ({
+                    ...prev,
+                    paymentMethod: type,
+                  }))
+                }
+              >
+                {type === "debit" ? "Debit Card" : "Credit Card"}
+              </button>
+            ))}
+          </div>
+
           <input
             className="inp"
             type="number"
             placeholder="Enter amount"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
+            name="amount"
+            value={depositForm.amount}
+            onChange={handleDepositChange}
           />
+          <input
+            className="inp"
+            type="text"
+            placeholder="Cardholder name"
+            name="cardholderName"
+            value={depositForm.cardholderName}
+            onChange={handleDepositChange}
+          />
+          <input
+            className="inp"
+            type="text"
+            inputMode="numeric"
+            placeholder="Card number"
+            name="cardNumber"
+            value={depositForm.cardNumber}
+            onChange={handleDepositChange}
+            maxLength={19}
+          />
+
+          <div className="wallet-inline-grid">
+            <input
+              className="inp"
+              type="text"
+              inputMode="numeric"
+              placeholder="MM/YY"
+              name="expiry"
+              value={depositForm.expiry}
+              onChange={handleDepositChange}
+              maxLength={5}
+            />
+            <input
+              className="inp"
+              type="password"
+              inputMode="numeric"
+              placeholder="CVV"
+              name="cvv"
+              value={depositForm.cvv}
+              onChange={handleDepositChange}
+              maxLength={4}
+            />
+          </div>
 
           <div className="quick-bets">
             {[500, 1000, 2000, 5000].map((value) => (
@@ -82,7 +171,12 @@ export default function WalletPage() {
                 key={value}
                 type="button"
                 className="quick-btn"
-                onClick={() => setAmount(String(value))}
+                onClick={() =>
+                  setDepositForm((prev) => ({
+                    ...prev,
+                    amount: String(value),
+                  }))
+                }
               >
                 Rs. {value}
               </button>
@@ -93,6 +187,33 @@ export default function WalletPage() {
             <button className="big-btn" onClick={deposit}>
               Deposit
             </button>
+          </div>
+        </div>
+
+        <div className="wallet-box">
+          <h3 className="box-title">WITHDRAW MONEY</h3>
+          <input
+            className="inp"
+            type="number"
+            placeholder="Enter amount"
+            value={withdrawAmount}
+            onChange={(e) => setWithdrawAmount(e.target.value)}
+          />
+
+          <div className="quick-bets">
+            {[500, 1000, 2000, 5000].map((value) => (
+              <button
+                key={value}
+                type="button"
+                className="quick-btn"
+                onClick={() => setWithdrawAmount(String(value))}
+              >
+                Rs. {value}
+              </button>
+            ))}
+          </div>
+
+          <div className="wallet-actions">
             <button className="big-btn outline" onClick={withdraw}>
               Withdraw
             </button>
@@ -110,6 +231,7 @@ export default function WalletPage() {
                   {isPositiveTransaction(tx.type) ? "+" : "-"}Rs. {Number(tx.amount || 0).toLocaleString("en-IN")}
                 </span>
                 <span className="tx-type"> . {tx.type}</span>
+                {tx.note ? <div className="tx-note">{tx.note}</div> : null}
               </div>
               <span className="tx-date">{tx.status}</span>
             </div>

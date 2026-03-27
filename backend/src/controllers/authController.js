@@ -1,6 +1,20 @@
 import bcrypt from "bcryptjs";
 import User from "../models/User.js";
-import { signToken, setTokenCookie } from "../utils/token.js";
+import {
+  clearTokenCookie,
+  signToken,
+  setTokenCookie,
+} from "../utils/token.js";
+
+const sanitizeUser = (user) => ({
+  _id: user._id,
+  name: user.name,
+  username: user.username || "",
+  email: user.email,
+  phone: user.phone || "",
+  balance: user.balance,
+  role: user.role,
+});
 
 export const register = async (req, res) => {
   const { name, email, password } = req.body;
@@ -27,13 +41,7 @@ export const register = async (req, res) => {
   setTokenCookie(res, token);
 
   res.status(201).json({
-    user: {
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      balance: user.balance,
-      role: user.role,
-    },
+    user: sanitizeUser(user),
   });
 };
 
@@ -54,25 +62,68 @@ export const login = async (req, res) => {
   setTokenCookie(res, token);
 
   res.json({
-    user: {
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      balance: user.balance,
-      role: user.role,
-    },
+    user: sanitizeUser(user),
   });
 };
 
 export const me = async (req, res) => {
-  res.json({ user: req.user });
+  res.json({ user: sanitizeUser(req.user) });
+};
+
+export const updateProfile = async (req, res) => {
+  const { name, username, email, phone } = req.body;
+  const user = await User.findById(req.user._id);
+
+  if (!name || !email) {
+    return res.status(400).json({ message: "Name and email are required" });
+  }
+
+  const normalizedEmail = email.trim().toLowerCase();
+  const trimmedUsername = username?.trim() || "";
+  const trimmedPhone = phone?.trim() || "";
+
+  const existingEmail = await User.findOne({
+    email: normalizedEmail,
+    _id: { $ne: user._id },
+  });
+
+  if (existingEmail) {
+    return res.status(400).json({ message: "Email already registered" });
+  }
+
+  if (trimmedUsername) {
+    const usernamePattern = /^[a-zA-Z0-9_]+$/;
+
+    if (!usernamePattern.test(trimmedUsername)) {
+      return res.status(400).json({
+        message: "Gamer ID can only use letters, numbers, and underscores",
+      });
+    }
+
+    const existingUsername = await User.findOne({
+      username: trimmedUsername,
+      _id: { $ne: user._id },
+    });
+
+    if (existingUsername) {
+      return res.status(400).json({ message: "Gamer ID already taken" });
+    }
+  }
+
+  user.name = name.trim();
+  user.username = trimmedUsername || undefined;
+  user.email = normalizedEmail;
+  user.phone = trimmedPhone;
+
+  await user.save();
+
+  res.json({
+    message: "Profile updated",
+    user: sanitizeUser(user),
+  });
 };
 
 export const logout = async (req, res) => {
-  res.cookie("token", "", {
-    httpOnly: true,
-    expires: new Date(0),
-  });
-
+  clearTokenCookie(res);
   res.json({ message: "Logged out" });
 };

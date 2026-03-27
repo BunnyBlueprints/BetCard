@@ -7,6 +7,7 @@ export default function Navbar({ user, page, setPage, onLogout }) {
         {[
           ["game", "Game"],
           ["wallet", "Wallet"],
+          ["profile", "Profile"],
         ].map(([key, label]) => (
           <button
             key={key}
@@ -19,6 +20,10 @@ export default function Navbar({ user, page, setPage, onLogout }) {
       </div>
 
       <div className="nav-right">
+        <div className="profile-pill">
+          <span className="profile-pill-name">{user.username || user.name}</span>
+          <span className="profile-pill-sub">{user.email}</span>
+        </div>
         <span className="bal-badge">
           Rs. {Number(user.balance || 0).toLocaleString("en-IN")}
         </span>

@@ -21,6 +21,10 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 
+app.get("/api/health", (_req, res) => {
+  res.json({ ok: true, environment: env.nodeEnv });
+});
+
 app.use("/api/auth", authRoutes);
 app.use("/api/wallet", walletRoutes);
 app.use("/api/game", gameRoutes);

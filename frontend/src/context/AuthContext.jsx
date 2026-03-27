@@ -22,6 +22,12 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
+  const updateProfile = async (data) => {
+    const res = await API.put("/auth/profile", data);
+    setUser(res.data.user);
+    return res.data;
+  };
+
   const loadUser = async () => {
     try {
       const res = await API.get("/auth/me");
@@ -44,6 +50,7 @@ export const AuthProvider = ({ children }) => {
         login,
         register,
         logout,
+        updateProfile,
         refreshUser: loadUser,
         setUser,
         loadingUser,

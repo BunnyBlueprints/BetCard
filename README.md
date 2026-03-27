@@ -166,6 +166,8 @@ MONGO_URI=your_mongodb_connection_string
 JWT_SECRET=your_jwt_secret
 CLIENT_URL=http://localhost:5173
 NODE_ENV=development
+COOKIE_SECURE=false
+COOKIE_SAME_SITE=lax
 ```
 
 ### Frontend
@@ -175,6 +177,87 @@ Create a frontend environment file such as `frontend/.env` with:
 ```env
 VITE_API_URL=http://localhost:5000/api
 ```
+
+## Deployment
+
+Recommended setup:
+
+- deploy `backend` to Render
+- deploy `frontend` to Vercel
+
+This project uses cookie-based auth, so the production setup must use:
+
+- `CLIENT_URL` on the backend set to the exact Vercel frontend URL
+- `VITE_API_URL` on the frontend set to the exact Render backend URL plus `/api`
+- secure cross-site cookies on the backend:
+  `COOKIE_SECURE=true`
+- cross-site cookie policy on the backend:
+  `COOKIE_SAME_SITE=none`
+
+### Render Deployment for Backend
+
+This repo includes a root `render.yaml` that points Render at the `backend` folder.
+
+1. Push the repo to GitHub.
+2. In Render, create a new `Blueprint` or `Web Service` from the repo.
+3. If you use the blueprint, Render will read `render.yaml` automatically.
+4. Set these backend environment variables in Render:
+
+```env
+NODE_ENV=production
+MONGO_URI=your_mongodb_connection_string
+JWT_SECRET=your_long_random_secret
+CLIENT_URL=https://your-frontend-project.vercel.app
+COOKIE_SECURE=true
+COOKIE_SAME_SITE=none
+```
+
+5. Deploy the service.
+6. After deploy, confirm the health check works at:
+
+```text
+https://your-render-backend.onrender.com/api/health
+```
+
+If you do not use the blueprint, use these Render settings manually:
+
+- Root Directory: `backend`
+- Build Command: `npm install`
+- Start Command: `npm start`
+
+### Vercel Deployment for Frontend
+
+1. In Vercel, import the same GitHub repo.
+2. Set the project `Root Directory` to `frontend`.
+3. Vercel should detect `Vite` automatically.
+4. Add this environment variable in Vercel:
+
+```env
+VITE_API_URL=https://your-render-backend.onrender.com/api
+```
+
+5. Deploy the project.
+
+### Production URL Pairing
+
+Use matching production URLs like this:
+
+```env
+# Render backend
+CLIENT_URL=https://betcard-frontend.vercel.app
+
+# Vercel frontend
+VITE_API_URL=https://betcard-backend.onrender.com/api
+```
+
+### Important Notes for Cookies
+
+- `SameSite=None` is required because Vercel and Render are different domains
+- `Secure=true` is required by browsers when using `SameSite=None`
+- if `CLIENT_URL` does not exactly match your Vercel domain, login cookies will not be accepted by the browser
+- after every Vercel redeploy with a new preview URL, cookie auth may fail unless `CLIENT_URL` matches that preview domain
+
+For stable authentication, use your main production Vercel domain in `CLIENT_URL`.
 
 ## Getting Started
 

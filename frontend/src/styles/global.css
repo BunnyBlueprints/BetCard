@@ -118,6 +118,28 @@ input::-webkit-inner-spin-button {
   gap: 10px;
 }
 
+.profile-pill {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  min-width: 0;
+}
+
+.profile-pill-name {
+  color: var(--text);
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+
+.profile-pill-sub {
+  color: var(--muted);
+  font-size: 10px;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .bal-badge {
   background: rgba(201, 168, 76, 0.1);
   color: var(--gold);
@@ -668,6 +690,12 @@ input::-webkit-inner-spin-button {
   background: rgba(231, 76, 60, 0.08);
 }
 
+.toast.ok {
+  color: var(--green);
+  border: 1px solid rgba(46, 204, 113, 0.25);
+  background: rgba(46, 204, 113, 0.08);
+}
+
 .wallet-grid,
 .admin-stats {
   display: grid;
@@ -687,7 +715,27 @@ input::-webkit-inner-spin-button {
   gap: 12px;
 }
 
+.payment-type-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.wallet-inline-grid,
+.profile-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.wallet-inline-grid .inp,
+.profile-grid .inp {
+  margin-bottom: 0;
+}
+
 .history-box {
+  grid-column: 1 / -1;
   height: fit-content;
 }
 
@@ -708,6 +756,68 @@ input::-webkit-inner-spin-button {
 .tx-neg {
   font-family: "DM Mono", monospace;
   font-size: 14px;
+}
+
+.tx-note,
+.field-label {
+  color: #70708b;
+  font-size: 11px;
+  letter-spacing: 1px;
+}
+
+.tx-note {
+  margin-top: 6px;
+}
+
+.profile-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+.profile-badge,
+.profile-card {
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.45);
+  border-radius: 12px;
+}
+
+.profile-badge {
+  min-width: 180px;
+  padding: 18px 20px;
+}
+
+.profile-badge strong {
+  display: block;
+  margin-top: 8px;
+  color: var(--gold);
+  font-size: 18px;
+}
+
+.profile-card {
+  padding: 24px;
+}
+
+.field-label {
+  display: block;
+  margin-bottom: 8px;
+}
+
+.profile-actions {
+  margin-top: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.profile-save {
+  width: auto;
+  min-width: 180px;
+  padding: 14px 22px;
 }
 
 .admin-header {
@@ -805,6 +915,12 @@ input::-webkit-inner-spin-button {
     padding: 5px 10px;
   }
 
+  .profile-pill {
+    align-items: flex-start;
+    width: 100%;
+    order: 3;
+  }
+
   .auth-card,
   .bet-card,
   .result-card {
@@ -838,7 +954,9 @@ input::-webkit-inner-spin-button {
   }
 
   .wallet-grid,
-  .admin-stats {
+  .admin-stats,
+  .wallet-inline-grid,
+  .profile-grid {
     grid-template-columns: 1fr;
   }
 
@@ -849,5 +967,11 @@ input::-webkit-inner-spin-button {
   .balance-amount,
   .result-amount {
     font-size: 30px;
+  }
+
+  .profile-header,
+  .profile-actions {
+    flex-direction: column;
+    align-items: stretch;
   }
 }
