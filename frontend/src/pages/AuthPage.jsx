@@ -37,7 +37,12 @@ export default function AuthPage() {
         });
       }
     } catch (err) {
-      setError(err?.response?.data?.message || "Authentication failed");
+      const fallbackMessage =
+        mode === "signup"
+          ? "Sign up failed. Make sure the backend is running and MongoDB is configured."
+          : "Login failed. Check your credentials and backend connection.";
+
+      setError(err?.response?.data?.message || fallbackMessage);
     } finally {
       setLoading(false);
     }
